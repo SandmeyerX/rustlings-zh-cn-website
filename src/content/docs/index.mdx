@@ -1,40 +1,39 @@
 ---
-title: Welcome to Starlight
-description: Get started building your docs site with Starlight.
-template: splash # Remove or comment out this line to display the site sidebar on this page.
+title: 欢迎来到 Rustlings
+description: 开始通过 Rustlings 学习 Rust 语言
+template: splash
 hero:
-  tagline: Congrats on setting up a new Starlight project!
+  tagline: 这里是学习 Rust 的 “悟道龙场”<br>少年，有胆量同编译器和测试一决高下吗？
   image:
-    file: ../../assets/houston.webp
+    file: ../../assets/ferris-dig.webp
   actions:
-    - text: Example Guide
+    - text: 开始练习
       link: /guides/example/
       icon: right-arrow
-    - text: Read the Starlight docs
-      link: https://starlight.astro.build
+    - text: 在 Github 上查看
+      link: https://github.com/SandmeyerX/rustlings-zh-cn
       icon: external
       variant: minimal
 ---
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
 
-## Next steps
 
 <CardGrid stagger>
-	<Card title="Update content" icon="pencil">
-		Edit `src/content/docs/index.mdx` to see this page change.
+	<Card title="流畅的内容" icon="pencil">
+		题解与提示在保证忠实原文的基础上，翻译得更符合中文表达习惯，易于理解。
 	</Card>
-	<Card title="Change page layout" icon="document">
-		Delete `template: splash` in `src/content/docs/index.mdx` to display a
-		sidebar on this page.
+	<Card title="及时的同步" icon="seti:clock">
+		每周与英文原版同步一次，及时处理练习相关变更。不必担心练习是否已经过时。
 	</Card>
-	<Card title="Add new content" icon="add-document">
-		Add Markdown or MDX files to `src/content/docs` to create new pages.
+	<Card title="友好的社区" icon="comment">
+		在这里，任何善意的求助与疑问都将被社区成员积极应对，所以，大胆问吧！
 	</Card>
-	<Card title="Configure your site" icon="setting">
-		Edit your `sidebar` and other config in `astro.config.mjs`.
+	<Card title="优秀的贡献者" icon="heart">
+		感谢所有对本项目做出贡献的人们，不论是开发基础设施、更新翻译，还是修复拼写错误、提出建议，
+		都十分感谢。
 	</Card>
-	<Card title="Read the docs" icon="open-book">
-		Learn more in [the Starlight Docs](https://starlight.astro.build/).
+	<Card title="阅读文档" icon="open-book">
+		想了解更多？请查看 [文档](https://github.com/SandmeyerX/rustlings-zh-cn).
 	</Card>
 </CardGrid>
