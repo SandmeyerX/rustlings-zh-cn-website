@@ -10,7 +10,7 @@ const TEMPLATE: &str = "src-builder/template.mdx";
 
 pub fn build(exercises: &[Exercise]) -> Result<()> {
     let build_dir = Path::new(BUILD_DIR);
-    std::fs::create_dir(build_dir)?;
+    std::fs::create_dir_all(build_dir)?;
 
     let grouped_exs = exercises.iter().into_group_map_by(|ex| ex.group.clone());
 
@@ -31,8 +31,7 @@ pub fn build(exercises: &[Exercise]) -> Result<()> {
             .join("exercises")
             .join(&group)
             .join("README.md");
-        // TODO: 把 README 中的每级标题都降一级
-        let readme = std::fs::read_to_string(readme_path)?;
+        let readme = clean_markdown(&std::fs::read_to_string(readme_path)?);
         // END ---
 
         let template = build_template(&group, &group, &readme, &group_template);
@@ -40,6 +39,27 @@ pub fn build(exercises: &[Exercise]) -> Result<()> {
     }
 
     Ok(())
+}
+
+/// 将每级标题都降一级
+fn clean_markdown(md: &str) -> String {
+    let mut out = String::with_capacity(md.len() + 16);
+    for line in md.lines() {
+        let t = line.trim_start();
+        if t.starts_with('#') {
+            // HACK: 没有正确处理第 6 级标题
+            // 标准 Markdown（CommonMark）最多 6 级标题
+            out.push('#');
+            out.push_str(t);
+        } else {
+            out.push_str(line);
+        }
+        out.push('\n');
+    }
+    // 去除末尾一个换行
+    out.pop();
+
+    out
 }
 
 fn build_template(title: &str, desc: &str, readme: &str, exs_temp: &str) -> String {
