@@ -6,7 +6,10 @@ import starlight from '@astrojs/starlight';
 export default defineConfig({
 	integrations: [
 		starlight({
-			title: 'Rustlings 简体中文版',
+			title: {
+				'zh-CN': 'Rustlings 简体中文版',
+				en: 'Rustlings in Simplified Chinese',
+			},
 			logo: {
 				src: './src/assets/logo.png',
 				replacesTitle: true,
@@ -19,8 +22,14 @@ export default defineConfig({
 					label: 'Guides',
 					items: [
 						// Each item here is one entry in the navigation menu.
-						{ label: 'Example Guide', slug: 'guides/example' },
+						{ label: '开始使用', slug: 'guides/get-started' },
 					],
+				},
+				{
+					label: 'Exercises',
+					items: [
+						{ autogenerate: { directory: 'exercises' } }
+					]
 				},
 				{
 					label: 'Reference',
