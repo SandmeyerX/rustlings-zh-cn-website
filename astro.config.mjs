@@ -1,11 +1,17 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import starlightCodeblockFullscreen from 'starlight-codeblock-fullscreen'
 
 // https://astro.build/config
 export default defineConfig({
 	integrations: [
 		starlight({
+			plugins: [
+				starlightCodeblockFullscreen({
+					// addToUntitledBlocks: true,
+				}),
+			],
 			title: {
 				'zh-CN': 'Rustlings 简体中文版',
 				en: 'Rustlings in Simplified Chinese',

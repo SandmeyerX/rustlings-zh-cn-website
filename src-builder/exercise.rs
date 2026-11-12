@@ -1,7 +1,7 @@
 use crate::RUSTLINGS_DIR;
 use anyhow::{Error, Result, bail};
 use serde::Deserialize;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 const EXERCISES_DIR: &str = "exercises/";
 const SOLUTIONS_DIR: &str = "solutions/";
@@ -72,6 +72,12 @@ pub struct Exercise {
     /// 即 没有 `.rs` 后缀的练习文件名
     pub name: String,
 
+    /// 练习文件路径
+    pub path: PathBuf,
+
+    /// 答案文件路径
+    pub solution_path: PathBuf,
+
     /// 题目内容
     pub content: String,
 
@@ -129,8 +135,8 @@ impl TryFrom<RawExercise> for Exercise {
             Some(ref p) => solutions_dir.join(p).join(&filename),
             None => solutions_dir.join(&filename),
         };
-        let content = std::fs::read_to_string(exercise_file)?;
-        let solution = std::fs::read_to_string(solution_file)?;
+        let content = std::fs::read_to_string(&exercise_file)?;
+        let solution = std::fs::read_to_string(&solution_file)?;
 
         let group = match value.dir {
             Some(dir) => dir.trim().to_string(),
@@ -142,6 +148,8 @@ impl TryFrom<RawExercise> for Exercise {
             content,
             solution,
             group,
+            path: exercise_file,
+            solution_path: solution_file,
             hint: value.hint,
             need_test: value.test,
             strict_clippy: value.strict_clippy,

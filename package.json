@@ -13,6 +13,7 @@
     "@astrojs/starlight": "^0.42.10",
     "@expressive-code/plugin-line-numbers": "^0.44.3",
     "astro": "^7.3.6",
-    "sharp": "^0.35.3"
+    "sharp": "^0.35.3",
+    "starlight-codeblock-fullscreen": "^2.0.0"
   }
 }

@@ -101,4 +101,16 @@ fn build_exercise_template(ex: &Exercise) -> String {
         .replace("%{{CONTENT}}%", &ex.content)
         .replace("%{{SOLUTION}}%", &ex.solution)
         .replace("%{{HINT}}%", &hint)
+        .replace("%{{EXERCISE_FILE_PATH}}%", &build_code_block_title(&ex.path))
+        .replace("%{{SOLUTION_FILE_PATH}}%", &build_code_block_title(&ex.solution_path))
+}
+
+/// 构建代码块标题
+/// 
+/// 去除代码文件路径中的 [`RUSTLINGS_DIR`] 前缀，并统一分隔符 `\` 为 `/`
+fn build_code_block_title(path: &Path) -> String {
+    path.strip_prefix(RUSTLINGS_DIR)
+        .unwrap_or(path)
+        .to_string_lossy() 
+        .replace('\\', "/")
 }
