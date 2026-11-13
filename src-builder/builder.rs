@@ -2,16 +2,24 @@ use crate::RUSTLINGS_DIR;
 use crate::exercise::Exercise;
 use anyhow::{Context, Result, bail};
 use itertools::Itertools;
-use std::{fs::File, io::Write, path::Path};
+use std::{
+    fs::File,
+    io::Write,
+    path::{Path, PathBuf},
+    sync::LazyLock,
+};
 
-const BUILD_DIR: &str = "build/";
+static BUILD_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
+    std::env::var_os("BUILD_DIR")
+        .unwrap_or("build/".into())
+        .into()
+});
 const EXERCISE_TEMPLATE: &str = "src-builder/ex_template.mdx";
 const TEMPLATE: &str = "src-builder/template.mdx";
 
 pub fn build(exercises: &[Exercise]) -> Result<()> {
-    let build_dir = Path::new(BUILD_DIR);
-    std::fs::create_dir_all(build_dir)
-        .with_context(|| format!("creating output directory {}", build_dir.display()))?;
+    std::fs::create_dir_all(BUILD_DIR.as_path())
+        .with_context(|| format!("creating output directory {}", BUILD_DIR.display()))?;
 
     let grouped_exs = exercises.iter().into_group_map_by(|ex| ex.group.clone());
 
@@ -24,7 +32,7 @@ pub fn build(exercises: &[Exercise]) -> Result<()> {
         }
 
         let filename = Path::new(&group).with_added_extension("mdx");
-        let output_path = build_dir.join(filename);
+        let output_path = BUILD_DIR.join(filename);
 
         // `group` is only a presentation key. We should never infer README path from it.
         // Use the README explicitly resolved from the exercise metadata instead.
