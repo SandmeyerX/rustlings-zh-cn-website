@@ -1,0 +1,120 @@
+name: Deploy to InfinityFree
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Only list what would change, do not upload anything"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: infinityfree
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout website
+        uses: actions/checkout@v4
+
+      - name: Checkout rustlings-zh-cn
+        uses: actions/checkout@v4
+        with:
+          repository: SandmeyerX/rustlings-zh-cn
+          path: _deps/rustlings-zh-cn
+          fetch-depth: 1
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ". -> target"
+
+      - name: Generate exercise pages
+        run: cargo run --quiet --bin builder
+        env:
+          RUSTLINGS_DIR: ${{ github.workspace }}/_deps/rustlings-zh-cn
+          BUILD_DIR: ${{ github.workspace }}/src/content/docs/exercises
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Validate dist against InfinityFree limits
+        shell: bash
+        run: |
+          fail=0
+
+          echo "Largest files in dist/:"
+          find dist -type f -printf '%s\t%p\n' | sort -rn | head -10 |
+            awk -F'\t' '{ printf "%9.2f KB  %s\n", $1 / 1024, $2 }'
+
+          while IFS= read -r -d '' f; do
+            size=$(stat -c%s "$f")
+            case "$(basename "$f")" in
+              .htaccess)               limit=10240   ;;  # 10 KB
+              *.html|*.htm|*.php|*.js) limit=1048576 ;;  # 1 MB
+              *)                       limit=10485760 ;; # 10 MB
+            esac
+            if [ "$size" -gt "$limit" ]; then
+              echo "::error file=$f::$(numfmt --to=iec "$size") exceeds the InfinityFree limit of $(numfmt --to=iec "$limit")"
+              fail=1
+            fi
+          done < <(find dist -type f -print0)
+
+          blocked=$(find dist -type f \( -iname '*.exe' -o -iname '*.pdf' \))
+          if [ -n "$blocked" ]; then
+            echo "::error::Blocked file types found (.exe/.pdf are deleted and can suspend the account):"
+            echo "$blocked"
+            fail=1
+          fi
+
+          if [ "$fail" -ne 0 ]; then
+            echo "Refusing to deploy - fix the files above first."
+            exit 1
+          fi
+          echo "OK: dist/ is within InfinityFree limits."
+
+      - name: Cache FTP deploy state
+        uses: actions/cache@v4
+        with:
+          path: .ftp-deploy-sync-state.json
+          key: ftp-deploy-state-${{ github.ref_name }}-${{ inputs.dry_run || 'false' }}-${{ github.run_id }}
+          restore-keys: |
+            ftp-deploy-state-${{ github.ref_name }}-${{ inputs.dry_run || 'false' }}-
+
+      - name: Deploy via FTPS
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: 21
+          protocol: ftps
+          local-dir: ./dist/
+          server-dir: ${{ secrets.FTP_DIR }}
+          state-name: .ftp-deploy-sync-state.json
+          dry-run: ${{ inputs.dry_run == true }}
+          log-level: standard
+          timeout: 90000
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
