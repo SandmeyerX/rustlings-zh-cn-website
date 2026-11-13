@@ -1,3 +1,4 @@
+use crate::RUSTLINGS_DIR;
 use crate::exercise::Exercise;
 use anyhow::{Context, Result, bail};
 use itertools::Itertools;
@@ -143,7 +144,7 @@ fn build_exercise_template(ex: &Exercise) -> Result<String> {
 ///
 /// 去除代码文件路径中的 [`RUSTLINGS_DIR`] 前缀，并统一分隔符 `\` 为 `/`
 fn build_code_block_title(path: &Path) -> String {
-    path.strip_prefix(crate::RUSTLINGS_DIR)
+    path.strip_prefix(RUSTLINGS_DIR.as_path())
         .unwrap_or(path)
         .to_string_lossy()
         .replace('\\', "/")

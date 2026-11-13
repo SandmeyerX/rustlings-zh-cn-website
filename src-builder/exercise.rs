@@ -125,9 +125,8 @@ impl TryFrom<RawExercise> for Exercise {
             bail!("name shouldn't be empty!");
         }
 
-        let root = Path::new(RUSTLINGS_DIR);
-        let exercises_dir = root.join(EXERCISES_DIR);
-        let solutions_dir = root.join(SOLUTIONS_DIR);
+        let exercises_dir = RUSTLINGS_DIR.join(EXERCISES_DIR);
+        let solutions_dir = RUSTLINGS_DIR.join(SOLUTIONS_DIR);
 
         let filename = Path::new(&name).with_added_extension("rs");
         let exercise_file = match value.dir.as_ref() {
@@ -149,7 +148,7 @@ impl TryFrom<RawExercise> for Exercise {
         let readme_path = value
             .dir
             .as_ref()
-            .map(|dir| root.join("exercises").join(dir).join("README.md"));
+            .map(|dir| exercises_dir.join(dir).join("README.md"));
 
         Ok(Self {
             name,
@@ -220,7 +219,7 @@ hint = """
         assert_eq!(ex.group, "00_intro");
         assert_eq!(
             ex.readme_path,
-            Some(Path::new(RUSTLINGS_DIR).join("exercises/00_intro/README.md"))
+            Some(RUSTLINGS_DIR.join("exercises/00_intro/README.md"))
         );
         assert!(!ex.content.is_empty());
         assert!(!ex.solution.is_empty());
