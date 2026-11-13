@@ -78,6 +78,17 @@ pub struct Exercise {
     /// 答案文件路径
     pub solution_path: PathBuf,
 
+    /// 练习分组名
+    ///
+    /// 这决定了将练习归于侧边栏中的哪一组
+    pub group: String,
+
+    /// 所属分组的 README 文件路径。
+    ///
+    /// 注意：`group` 只是页面分组名，它不保证等于目录名。
+    /// 只有当练习属于某个 `dir` 时，才可能存在对应 README。
+    pub readme_path: Option<PathBuf>,
+
     /// 题目内容
     pub content: String,
 
@@ -103,14 +114,6 @@ pub struct Exercise {
     ///
     /// 你可以选择将 `skip_check_unsolved` 设置为 `true`（默认值为 `false`），以跳过对未解决练习的检查。
     pub need_check: bool,
-
-    /// 练习分类
-    ///
-    /// 这决定了将练习归于侧边栏中的哪一组
-    ///
-    /// # NOTE
-    /// 如果 [`RawExercise`] 的字段 `dir` 为 `Some`，则值为 `dir`；否则单独为一组，值为 `name`
-    pub group: String,
 }
 
 impl TryFrom<RawExercise> for Exercise {
@@ -127,27 +130,33 @@ impl TryFrom<RawExercise> for Exercise {
         let solutions_dir = root.join(SOLUTIONS_DIR);
 
         let filename = Path::new(&name).with_added_extension("rs");
-        let exercise_file = match value.dir {
-            Some(ref p) => exercises_dir.join(p).join(&filename),
+        let exercise_file = match value.dir.as_ref() {
+            Some(p) => exercises_dir.join(p).join(&filename),
             None => exercises_dir.join(&filename),
         };
-        let solution_file = match value.dir {
-            Some(ref p) => solutions_dir.join(p).join(&filename),
+        let solution_file = match value.dir.as_ref() {
+            Some(p) => solutions_dir.join(p).join(&filename),
             None => solutions_dir.join(&filename),
         };
         let content = std::fs::read_to_string(&exercise_file)?;
         let solution = std::fs::read_to_string(&solution_file)?;
 
-        let group = match value.dir {
+        let group = match value.dir.as_ref() {
             Some(dir) => dir.trim().to_string(),
             None => name.clone(),
         };
+
+        let readme_path = value
+            .dir
+            .as_ref()
+            .map(|dir| root.join("exercises").join(dir).join("README.md"));
 
         Ok(Self {
             name,
             content,
             solution,
             group,
+            readme_path,
             path: exercise_file,
             solution_path: solution_file,
             hint: value.hint,
@@ -209,6 +218,10 @@ hint = """
         };
         let ex = Exercise::try_from(raw).unwrap();
         assert_eq!(ex.group, "00_intro");
+        assert_eq!(
+            ex.readme_path,
+            Some(Path::new(RUSTLINGS_DIR).join("exercises/00_intro/README.md"))
+        );
         assert!(!ex.content.is_empty());
         assert!(!ex.solution.is_empty());
         assert!(!ex.need_test);
