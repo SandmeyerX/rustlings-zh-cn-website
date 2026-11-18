@@ -92,14 +92,6 @@ jobs:
           fi
           echo "OK: dist/ is within InfinityFree limits."
 
-      - name: Cache FTP deploy state
-        uses: actions/cache@v4
-        with:
-          path: .ftp-deploy-sync-state.json
-          key: ftp-deploy-state-${{ github.ref_name }}-${{ inputs.dry_run || 'false' }}-${{ github.run_id }}
-          restore-keys: |
-            ftp-deploy-state-${{ github.ref_name }}-${{ inputs.dry_run || 'false' }}-
-
       - name: Deploy via FTPS
         uses: SamKirkland/FTP-Deploy-Action@v4.4.0
         with:
